@@ -1,7 +1,6 @@
 """ Some simple unit tests for my AVL Tree. These were all GPT'd. We should really just use PyTest. """
 
-import include_src_helper 
-from src.AvlTree import *
+from avl_tree import *
 
 # Helper functions for testing
 def is_balanced(tree):
