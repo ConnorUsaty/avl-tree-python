@@ -1,6 +1,8 @@
 """ AVL Tree implementation with the sole goal of making create() as few lines as possible. """
 
-class Comparison:
+from enum import Enum
+
+class Comparison(Enum):
     Eq = 0
     Gt = 1
     Lt = 2
@@ -27,10 +29,26 @@ def empty():
 def height(tree):
     return tree.h if tree else 0
 
-# 2 crazy one liners, hopefully 1 crazier one liner soon
+# the craziest one liner
 def create(node):
-    aux = [lambda n: Node(n.l, n.k, n.v, n.r, 1 + max(height(n.l), height(n.r))), lambda n, r: aux[0](Node(aux[0](Node(n.l, n.k, n.v, r.l, n.h)), r.k, r.v, r.r, r.h)), lambda n, l: aux[0](Node(l.l, l.k, l.v, aux[0](Node(l.r, n.k, n.v, n.r, n.h)), l.h))]
-    return aux[1](node, node.r) if node.r and node.r.r and node.r.r.h > height(node.l) else (aux[1](node, aux[2](node.r, node.r.l)) if node.r and node.r.l and node.r.l.h > height(node.l) else (aux[2](node, aux[1](node.l, node.l.r))) if node.l and node.l.r and node.l.r.h > height(node.r) else (aux[2](node, node.l) if node.l and node.l.l and node.l.l.h > height(node.r) else (aux[0](node))))
+    return (
+        # walrus operator goated
+        (make := lambda n:    Node(n.l, n.k, n.v, n.r, 1 + max(height(n.l), height(n.r)))) and
+        (rotl := lambda n, r: Node(make(Node(n.l, n.k, n.v, r.l, 0)), r.k, r.v, r.r, 0)) and
+        (rotr := lambda n, l: Node(l.l, l.k, l.v, make(Node(l.r, n.k, n.v, n.r, 0)), 0)) and
+        # rename because node.l and node.r is verbose
+        ((l := node.l) or True) and # or True to handle node = None case
+        ((r := node.r) or True) and
+        # poor mans match statement
+        make(
+            rotl(node, r)            if r and r.r and r.r and r.r.h > height(l) else(
+            rotl(node, rotr(r, r.l)) if r and r.l and r.l and r.l.h > height(l) else(
+            rotr(node, rotl(l, l.r)) if l and l.r and l.r and l.r.h > height(r) else(
+            rotr(node, l)            if l and l.l and l.l and l.l.h > height(r) else(
+            node
+            ))))
+        )
+    )
 
 def add(k, v, tree):
     if not tree:
