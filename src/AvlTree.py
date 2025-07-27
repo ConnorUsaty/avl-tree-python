@@ -55,24 +55,30 @@ def add(k, v, tree):
         return Node(None, k, v, None, 1)
     
     comparison = cmp(k, tree.k)
-    if comparison == Comparison.Eq:
-        return create(Node(tree.l, tree.k, v, tree.r, tree.h))
-    elif comparison == Comparison.Lt:
-        return create(Node(add(k, v, tree.l), tree.k, tree.v, tree.r, tree.h))
-    else:
-        return create(Node(tree.l, tree.k, tree.v, add(k, v, tree.r), tree.h))
+    match comparison:
+        case Comparison.Eq:
+            return create(Node(tree.l, tree.k, v, tree.r, tree.h))
+        case Comparison.Lt:
+            return create(Node(add(k, v, tree.l), tree.k, tree.v, tree.r, tree.h))
+        case Comparison.Gt:
+            return create(Node(tree.l, tree.k, tree.v, add(k, v, tree.r), tree.h))
+        case _:
+            raise Exception("Should be unreachable")
 
 def find(k, tree):
     if not tree:
         return None
     
     comparison = cmp(k, tree.k)
-    if comparison == Comparison.Eq:
-        return tree.v
-    elif comparison == Comparison.Lt:
-        return find(k, tree.l)
-    else:
-        return find(k, tree.r)
+    match comparison:
+        case Comparison.Eq:
+            return tree.v
+        case Comparison.Lt:
+            return find(k, tree.l)
+        case Comparison.Gt:
+            return find(k, tree.r)
+        case _:
+            raise Exception("Should be unreachable")
 
 def remove(k, tree):
     def pop_successor(n):
@@ -85,17 +91,20 @@ def remove(k, tree):
         return None, None
     
     comparison = cmp(k, tree.k)
-    if comparison == Comparison.Eq:
-        if not tree.r:
-            return tree.v, tree.l
-        (new_k, new_v), new_r = pop_successor(tree.r)
-        return tree.v, create(Node(tree.l, new_k, new_v, new_r, tree.h))
-    elif comparison == Comparison.Lt:
-        removed_val, new_l = remove(k, tree.l)
-        return removed_val, create(Node(new_l, tree.k, tree.v, tree.r, tree.h))
-    else:
-        removed_val, new_r = remove(k, tree.r)
-        return removed_val, create(Node(tree.l, tree.k, tree.v, new_r, tree.h))
+    match comparison:
+        case Comparison.Eq:
+            if not tree.r:
+                return tree.v, tree.l
+            (new_k, new_v), new_r = pop_successor(tree.r)
+            return tree.v, create(Node(tree.l, new_k, new_v, new_r, tree.h))
+        case comparison.Lt:
+            removed_val, new_l = remove(k, tree.l)
+            return removed_val, create(Node(new_l, tree.k, tree.v, tree.r, tree.h))
+        case comparison.Gt:
+            removed_val, new_r = remove(k, tree.r)
+            return removed_val, create(Node(tree.l, tree.k, tree.v, new_r, tree.h))
+        case _:
+            raise Exception("Should be unreachable")
 
 def to_list(tree):
     def aux(acc, t):
